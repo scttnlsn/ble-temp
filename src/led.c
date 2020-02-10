@@ -21,3 +21,12 @@ int led_init(led_t *led) {
 void led_set(led_t *led, int value) {
   gpio_pin_set(led->dev, led->pin, value);
 }
+
+void led_blink(led_t *led) {
+  while (1) {
+    led_set(led, 1);
+    k_sleep(100);
+    led_set(led, 0);
+    k_sleep(100);
+  }
+}
