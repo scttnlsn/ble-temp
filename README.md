@@ -4,6 +4,7 @@ Setup:
 
 ```
 git clone https://github.com/zephyrproject-rtos/zephyr.git
+pip install west
 west update
 source env.sh
 ```

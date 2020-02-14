@@ -1,3 +1,6 @@
+#ifndef __BUTTON_H__
+#define __BUTTON_H__
+
 #include <drivers/gpio.h>
 
 typedef struct {
@@ -10,3 +13,5 @@ typedef struct {
 } button_t;
 
 int button_init(button_t *button);
+
+#endif
