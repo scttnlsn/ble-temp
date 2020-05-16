@@ -25,8 +25,8 @@ void led_set(led_t *led, int value) {
 void led_blink(led_t *led) {
   while (1) {
     led_set(led, 1);
-    k_sleep(100);
+    k_sleep(K_MSEC(100));
     led_set(led, 0);
-    k_sleep(100);
+    k_sleep(K_MSEC(100));
   }
 }

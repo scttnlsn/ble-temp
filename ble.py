@@ -18,7 +18,8 @@ class NotificationDelegate(bluepy.btle.DefaultDelegate):
         bluepy.btle.DefaultDelegate.__init__(self)
 
     def handleNotification(self, handle, data):
-        print(data[0])
+        val = struct.unpack('h', data)
+        print(val)
 
 print('connecting to %s...' % mac)
 peripheral = bluepy.btle.Peripheral(mac, bluepy.btle.ADDR_TYPE_RANDOM)

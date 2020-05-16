@@ -8,69 +8,46 @@
 #include "button.h"
 #include "ble.h"
 
+#include <devicetree.h>
+#include <drivers/sensor.h>
+
+#define BME280 DT_INST(0, bosch_bme280)
+
+#if DT_HAS_NODE(BME280)
+#define BME280_LABEL DT_LABEL(BME280)
+#else
+#error Your devicetree has no enabled nodes with compatible "bosch,bme280"
+#define BME280_LABEL "<none>"
+#endif
+
 LOG_MODULE_REGISTER(main);
-
-static struct gpio_callback button_callback;
-
-K_FIFO_DEFINE(button_presses_fifo);
-
-typedef struct {
-  void *fifo_reserved;
-} button_press_event_t;
-
-static s64_t last_press = 0;
-
-void button_pressed(struct device *dev, struct gpio_callback *cb, u32_t pins) {
-  s64_t current_press = k_uptime_get();
-
-  // debounce
-  if (current_press - last_press > 200) {
-    button_press_event_t event;
-    k_fifo_put(&button_presses_fifo, &event);
-  }
-
-  last_press = current_press;
-}
 
 void main(void) {
   LOG_INF("starting...");
 
-  int err;
-
-  led_t led;
-  led.dev_name = "GPIO_0";
-  led.pin = 18;
-
-  err = led_init(&led);
-  if (err) {
-    printk("error initializing LED\n");
-    return;
-  }
-
-  button_t button;
-  button.dev_name = "GPIO_0";
-  button.pin = 16;
-  button.flags = GPIO_PULL_UP | GPIO_ACTIVE_LOW;
-  button.callback = button_callback;
-  button.callback_handler = button_pressed;
-
-  err = button_init(&button);
-  if (err) {
-    LOG_ERR("error initializing button");
+  struct device *dev = device_get_binding(BME280_LABEL);
+  if (dev == NULL) {
+    LOG_ERR("could not find BME280 device");
     return;
   }
 
   ble_init();
 
-  int button_state = 0;
-  u8_t counter = 0;
-
   while (1) {
-    button_press_event_t *event = k_fifo_get(&button_presses_fifo, K_FOREVER);
-    button_state = !button_state;
-    LOG_INF("button pressed");
-    led_set(&led, button_state);
-    ble_notify((u8_t *) &counter, 1);
-    counter++;
+    struct sensor_value value;
+    sensor_sample_fetch(dev);
+    sensor_channel_get(dev, SENSOR_CHAN_AMBIENT_TEMP, &value);
+
+    // value.val1 -> integer part
+    // value.val2 -> fractional part (* 10e-6)
+    // degrees_c = value.val1 + value.val2 * 10^(-6)
+
+    // temp = degrees * 100
+    s16_t temp = (value.val1 * 100) + (value.val2 / 10000);
+    LOG_INF("temp: %d", temp);
+
+    ble_notify((u8_t *) &temp, 2); // s16_t -> 2 bytes
+
+    k_sleep(K_MSEC(5000));
   }
 }
