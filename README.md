@@ -29,6 +29,14 @@ nrfutil pkg generate --hw-version 52 --sd-req=0x00 --application build/zephyr/ze
 nrfutil dfu usb-serial -pkg firmware.zip -p /dev/ttyACM0
 ```
 
+## Config
+
+To access the interactive Kconfig menu:
+
+```
+west build -t menuconfig
+```
+
 ## Resources
 
 * https://devzone.nordicsemi.com/nordic/nordic-blog/b/blog/posts/optimizing-power-on-nrf52-designs
