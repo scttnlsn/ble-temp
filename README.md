@@ -1,4 +1,6 @@
-# nrf-ble
+# ble-temp
+
+Bluetooth Low Energy temperature sensor based on NRF52840 + BME280.
 
 ## Setup
 
